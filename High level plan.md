@@ -8,10 +8,18 @@
 ####  analisi sulla variabile am nella relazione con le altre
 
 ###Adattamento del modello:
-####  scelta della variabili tramite analisi esplorativa e modelli nidificati;
+####  scelta della variabili:
+- valutazione su eventuali trasformazioni (o matematiche o di ordine di grandezza);
+- anova dei modelli nidificati aiutandoti con le correlazioni;
+- analisi della inflazione della varianza per capire se togliere qualche regressore;
 ####  interpretazione dei coefficienti aiutandoti con il capitolo sull'adjustement;
-####  duagnostica del modello e verifica delle assunzioni (vedi appunti su Rmarkdown per notare se haid imenticato qualcosa)
+####  diagnostica del modello e verifica delle assunzioni (vedi appunti su Rmarkdown per notare se haid imenticato qualcosa):
+- presenza di outlier;
+- grafico diagnostico in R;
+- test di shapiro per la normalità;
 
 ###Conclusioni
 #### concludi a livello quantitativo esprimendo l'incertezza tramite intervalli di confidenza
-####  verifica di aver fatto tutto ciò su cui vieni valutato
+####  verifica di aver fatto tutto ciò su cui vieni valutato:
+- rilettura dell'assignement;
+- rilettura di tutti gli appunti!!
