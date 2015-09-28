@@ -2,10 +2,15 @@
 ##Project for the coursera class Regression models
 
 ###Exploratory data analysis:
-#### lettura e compresione codebook
-####  analisi monovariate
-####  matrice degli scatterplot
-####  analisi sulla variabile am nella relazione con le altre
+#### lettura e compresione codebook x
+####  analisi monovariate x 
+####  matrice degli scatterplot x
+####  analisi sulla variabile am nella relazione con le altre:
+- media per ogni variabile fattore;
+- media bivariata fattore + am
+- anova fattoriale
+- grafico
+- per le variabili continue grafico
 
 ###Adattamento del modello:
 ####  scelta della variabili:
