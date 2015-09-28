@@ -9,6 +9,7 @@
 
 ###Adattamento del modello:
 ####  scelta della variabili:
+- variabili dedotte da analisi esplorative: cyl, 
 - valutazione su eventuali trasformazioni (o matematiche o di ordine di grandezza);
 - anova dei modelli nidificati aiutandoti con le correlazioni;
 - analisi della inflazione della varianza per capire se togliere qualche regressore;
