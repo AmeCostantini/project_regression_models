@@ -69,7 +69,13 @@ summary(aov(formula = mpg ~ factor(am), data = mtcars))
 TukeyHSD(aov(formula = mpg ~ factor(am), data = mtcars))
 ```
 
-L'anova (come anche un qualunque t test) conferma che il cambio manuale consuma in medià più di quello automatico, circa 7 galloni in più con una confidenza tra 3 e 10.
+L'anova (come anche un qualunque t test) conferma che il cambio manuale consuma in medià più di quello automatico, circa 7 galloni in più con una confidenza tra 3 e 10 (ma dovrei chiedermi: what if è una terza variabile di confounding a spiegare la relazione? devo sempre chiedermelo, prima di analizzare la relazione; e infatti:
+
+```{r confounding}
+ggplot(mtcars, aes(x=wt, y=mpg, colour= factor(am))) + geom_point(size=6)
+```
+
+
 
 Quali variabili possono aiutarci ad andare oltre il main effect? Intanto calcolo medie bivariate con le altre variabili fattore per vedere se ci sono effetti semplici.
 
