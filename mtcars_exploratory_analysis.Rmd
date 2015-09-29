@@ -4,10 +4,15 @@ author: "Americo"
 date: "28 settembre 2015"
 output: html_document
 ---
+The question of interest are:
+
+- Is an automatic or manual transmission better for MPG”?
+- Can you quantify the MPG difference between automatic and manual transmissions?
+
 ##Mtcars dataset
 
 ```{r packages}
-require(car); require(dplyr); require(datasets); require(GGally); require(psych); require(tidyr); require(ggplot2)
+require(car); require(dplyr); require(datasets); require(GGally); require(psych); require(tidyr); require(ggplot2); require(lsr)
 ```
 
 ```{r loading mtcars}
@@ -55,144 +60,91 @@ Ci sono alcune variabili come `carb``gear` `am` `vs`e `cyl` che hanno davvero po
 ```{r matrice scatterplot}
 ggpairs(mtcars)
 ```
+##Main Effect
 
-###Analisi della trasmissione
+Analyzing the main effect of `am` on `mpg` we see an influence of trasmission on fule consumption:
 
-Noi siamo interessati a come e quanto la trasmissione automatica o manuale influenza il consumo della vettura. Chiaramente lo possiamo analizzare marginalmente o includendo (come vogliamo) altre variabili che aiutano a descrivere meglio la relazione tra `am`e `mpg`.
-
-```{r anova analysis}
-mpg_mean_marg <- mtcars %>%
+```{r am 1}
+mtcars_agg1  <- mtcars %>%
   group_by(am) %>%
-  summarize(mean_mpg = mean(mpg))
-mpg_mean_marg
-summary(aov(formula = mpg ~ factor(am), data = mtcars))
-TukeyHSD(aov(formula = mpg ~ factor(am), data = mtcars))
+  summarize(mean_mpg = mean(mpg),
+            n= n())
+mtcars_agg1
 ```
 
-L'anova (come anche un qualunque t test) conferma che il cambio manuale consuma in medià più di quello automatico, circa 7 galloni in più con una confidenza tra 3 e 10 (ma dovrei chiedermi: what if è una terza variabile di confounding a spiegare la relazione? devo sempre chiedermelo, prima di analizzare la relazione; e infatti:
+So you see a difference. Is it significant? Let's perform a *one-way Anova*:
 
-```{r confounding}
-ggplot(mtcars, aes(x=wt, y=mpg, colour= factor(am))) + geom_point(size=6)
+```{r am anova}
+am_aov <- aov(mpg ~ am, mtcars)
+summary(am_aov)
+etaSquared(am_aov)
 ```
 
+It seems significant and with a tangible effect.
 
+But what if there is some confounding variable? From the scatterplot matrix you see that `am` has a high correlation with `wt`, `drat` and `gear`. So let's explore the relationship between `am` and `mpg` adjusting for this other variables.
 
-Quali variabili possono aiutarci ad andare oltre il main effect? Intanto calcolo medie bivariate con le altre variabili fattore per vedere se ci sono effetti semplici.
-
-####Analisi di cyl
-```{r am and cyl mean}
-mpg_mean_cyl_am  <- mtcars %>%
-  group_by(am, cyl) %>%
-  summarize(mean_mpg = mean(mpg)) %>%
-  spread(key = cyl, value = mean_mpg)
-mpg_mean_cyl_am
+###wt
+```{r am e wt plot}
+fit3 <- lm(log(mpg) ~ wt + factor(am), mtcars)
+summary(fit3)$coef
+ggplot(mtcars, aes(x= wt, y = log(mpg), colour= factor(am))) +
+  geom_point(size = 4) + 
+  geom_abline(intercept = summary(fit3)$coef[1,1], slope = summary(fit3)$coef[2,1], colour = "red") + 
+  geom_abline(intercept = summary(fit3)$coef[1,1] + summary(fit3)$coef[3,1], slope = summary(fit3)$coef[2,1], colour = "blue") + 
+  geom_hline(yintercept = mean(log(mtcars$mpg)[mtcars$am ==0]), colour = "red") +
+  geom_hline(yintercept = mean(log(mtcars$mpg)[mtcars$am ==1]), colour = "blue")
 ```
 
-C'è un bell'effetto di interazione: considerando i cilindri la differenza di consumi si concentra solo sui 4 cilindri: se una macchina ne ha 6 o 8 non conta quale tipo di trasmissione abbia, consuma più o meno uguale. La numerosità dei gruppi però è comparabile?
+I made a log trasformation to have linearity. It seems that am is highly related to weight: is car's weight is less than 3, you are very likely seing a manual trasmission, otherwise an automatic one. Expert knows that automatic trasmission cars weigh more. Now, weight is highly correlated to fule consumtpion. Does am tell us something more than weight? You see that adjusting for wt change order od magnitude and sign of the main effect (red horizontal line is mean of manual trasmission, blue is automatic)
+; adjusting for weights probably make am a useless variable to predict mpg. Let's check with an ANOVA table
 
-```{r am and cyl n}
-mpg_n_cyl  <- mtcars %>%
-  group_by(am, cyl) %>%
-  tally %>%
-  spread(key = cyl, value = n)
-mpg_n_cyl
+```{r am and wt}
+fit0 <- lm(log(mpg) ~ wt, mtcars)
+fit1 <- lm(log(mpg) ~ wt + factor(am), mtcars)
+anova(fit0, fit1)
 ```
 
-Non sempre lo è: direi di proseguire con una factorial anova:
+High p-value.
+Let's interpret the last model:
 
-```{r anova mpg am cyl}
-summary(aov(mpg ~ factor(am) * factor(cyl), mtcars))
-TukeyHSD(aov(mpg ~ factor(am) * factor(cyl), mtcars))
+```{r am and wt lm}
+fit1 <- lm(log(mpg) ~ wt + factor(am), mtcars)
+summary(fit1)
 ```
 
-mm, l'effetto di interazione non è significativo, ma solo quelli marginali lo sono. A proposito, come si distribuiscono i consumi per cilindri?
+-0.04 is the change in the intercept if the trasmission move from manual to automatic : even a small decrease, while -0.28 is the percentage change in the mean of Y for a 1% change in the coefficient (for the log trasmormation). Let'see the confidence interval for these coefficient
 
-```{r mpg cyl}
-mpg_mean_cyl  <- mtcars %>%
-  group_by(cyl) %>%
-  summarize(mean_mpg = mean(mpg))
-mpg_mean_cyl
+```{r am wt confidence}
+confint(fit1)
 ```
 
-L'effetto marginale è tangibile. Io comunque cyl nel modello lo includerei tra i primi per capire.
+The change in the intercept could be also positive, but anyway we don't have overlapping points for any level f X, so we heavily rely on the model for comparning the behaviour of am on mpg for a certain level of X (there are no read point close to the Y axis.) I dont'know if this is because of the small sample or if because there are no automatic transmission car with those weights.
 
-Facciamo un grafico
+Let'see if this model violates some assumtpions:
 
-```{r cyl qm plot}
-ggplot(data = mtcars, aes(x = cyl, y = mpg, colour = am)) +
+```{r wt am diagnostic plot}
+par(mfrow = c(2, 2))
+plot(fit1)
+```
+
+TO BE CONTINUED
+
+
+###Drat
+```{r am drat}
+ggplot(data = mtcars, aes(x = drat, y = mpg, colour = factor(am))) +
   geom_point(size = 5)
 ```
 
-Il grafico conferma che l'effetto di interazione porta ad avere una differenza tra le medie solo per i 4 cilindri, ma tale differenza non è significativa
+`drat` can explain some of the variance of `mpg` due to `am`, as you can see from the two groups at the side of the plot, but there are also some level of `drat` where `am` is not related to `mpg`
 
-####Analisi di carb
- 
-```{r carb mpg}
-table(mtcars$carb)
-mpg_mean_carb <- mtcars %>%
-  group_by(carb) %>%
-  summarize(mean = mean(mpg))
-mpg_mean_carb
+Let's see on an ANOVA table if adding `am` in a model with only `drat` as predictor is significant:
+
+```{r am and drat}
+fit0 <- lm(mpg ~ drat, mtcars)
+fit1 <- lm(mpg ~ drat + am, mtcars)
+anova(fit0, fit1)
 ```
 
-la numerosità è tale che i risultati hanno senso solo fino a 4 carburatori. Inseriamo am:
-
-```{r carb mpg am}
-mpg_mean_carb_am <- mtcars %>%
-  group_by(carb, am) %>%
-  summarize(mean = mean(mpg)) %>%
-  spread(key = carb, value = mean)
-mpg_mean_carb_am
-```
-
-facciamo una anova escludendo 6 e 8 carburatori
-
-```{r}
-summary(aov(mpg ~ factor(carb) * factor(am), mtcars[mtcars$carb<6,]))
-```
-
-L'effetto di interazione non è significativo, infatti la media per ogni livello di carb è sempre più alta per il cambio manuale (che fa consumare meno).
-
-```{r carb am plot}
-ggplot(data = mtcars, aes(x = carb, y = mpg, colour = factor(am))) +
-  geom_point(size = 5)
-ggplot(data = mtcars, aes(x = am, y = mpg, size = factor(carb))) +
-  geom_point()
-```
-
-Tuttavia non serve per forza effetto di interazione per includere una variabile. il grafico mostra che sapere il carburatore a volte ci dice qualcosa sui consumi: tendenzialmente a parità di cambio, più carburatori portano più consumi, meno miles per gallon.
-
-La matrice degli scatterplot, nel rapporto tra cyl e carb, ci dice che la correlazione è 0.5. la nuvola di punti ci dice poco, troppi datapoint sono sovrapposti. una analisi delle medie ci dice che:
-
-```{r carb e cyl}
-mtcars %>%
-  group_by(carb, cyl) %>%
-  summarise(mean = mean(mpg)) %>%
-  spread(key =carb, value = mean)
-```
-
-In effetti troppe combinazioni mancano, e pare che a parità di numero di carburatori più cilindri fanno consumare di più, ma a parità di cilindri il numero di carburatori non cambia molto. Vuol dire che se sai i cilindri conosci i consumi senza bisogno del carburatore, ma non il contrario (in gergo tecnico, i cilindri spiegano in parte la relazione tra mpg e carburatori, mentre i carburatori sono inutili nello spiegare la relazione tra cilindri e mpg. in media, si intende.) 
-
-Confermiamolo con un grafico:
-
-```{r}
-ggplot(mtcars, aes(x = cyl, y = mpg, size = carb)) +
-  geom_point()
-```
-
-Infatti, per ognuna delle 3 linee di punti la dimensione dei punti non identifica alcun pattern, non ci dice molto di più.
-Invece il contrario:
-
-```{r}
-ggplot(mtcars, aes(x = carb, y = mpg, size = cyl )) +
-  geom_point()
-```
-
-ha un pattern per ogni linea di punti. eh già. ora rimane da chiedersi: andrà incluso carb se è inutile a spiegare la relazione tra cyl e mpg? non lo so, considerando anche che la relazione di interesse è tra am e mpg.
-###Analisi di Gear
-
-###Analisi di V/S
-
-
-
-
+Is not significant.
