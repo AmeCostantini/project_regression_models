@@ -119,32 +119,37 @@ summary(fit1)
 confint(fit1)
 ```
 
-The change in the intercept could be also positive, but anyway we don't have overlapping points for any level f X, so we heavily rely on the model for comparning the behaviour of am on mpg for a certain level of X (there are no read point close to the Y axis.) I dont'know if this is because of the small sample or if because there are no automatic transmission car with those weights.
+The change in the intercept could be also positive, but anyway we don't have overlapping points for any level f X, so we heavily rely on the model for comparning the behaviour of am on mpg for a certain level of X (there are no read point close to the Y axis.) I dont'know if this is because of the small sample or if because there are no automatic transmission car with those weights. For example some experts says that am cars has more consumption also for some driving style inefficiency; but we can't compare cars of the same weights but with different transmission, so we can't exclude that the effect is due to weight. 
 
-Let'see if this model violates some assumtpions:
+Is the model that include only weith as a predictor variable significant and assumtpions violating?
 
-```{r wt am diagnostic plot}
+```{r}
+summary(fit0)
+par(mfrow = c(2, 2))
+plot(fit0)
+```
+
+It is not too bad, although i am not sure homoschedasticity is respected.
+
+Let's include more variable to see how it works:
+
+```{r ml wt and hp}
+fit0 <- lm(log(mpg) ~ wt, mtcars)
+fit1 <- lm(log(mpg) ~ wt + I(hp/100), mtcars)
+anova(fit0, fit1)
+fit2 <- lm(log(mpg) ~ wt + hp + carb, mtcars)
+anova(fit1, fit2)
+```
+
+li ho provati tutti, nessun predittore migliora fit1. come è fit1?
+
+```{r}
+summary(fit1)
+vif(fit1)
+confint(fit1)
 par(mfrow = c(2, 2))
 plot(fit1)
 ```
 
-TO BE CONTINUED
+ORA COMMENTI SUL MODELLO, CHE SEMBRA ESSERE IL MIGLIORE
 
-
-###Drat
-```{r am drat}
-ggplot(data = mtcars, aes(x = drat, y = mpg, colour = factor(am))) +
-  geom_point(size = 5)
-```
-
-`drat` can explain some of the variance of `mpg` due to `am`, as you can see from the two groups at the side of the plot, but there are also some level of `drat` where `am` is not related to `mpg`
-
-Let's see on an ANOVA table if adding `am` in a model with only `drat` as predictor is significant:
-
-```{r am and drat}
-fit0 <- lm(mpg ~ drat, mtcars)
-fit1 <- lm(mpg ~ drat + am, mtcars)
-anova(fit0, fit1)
-```
-
-Is not significant.
