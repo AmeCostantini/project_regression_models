@@ -16,7 +16,7 @@
 ####  scelta della variabili:
 - variabili dedotte da analisi esplorative: cyl, 
 - valutazione su eventuali trasformazioni (o matematiche o di ordine di grandezza);
-- anova dei modelli nidificati aiutandoti con le correlazioni;
+- anova dei modelli nidificati aiutandoti con le correlazioni(FARE MAGARI LISTA DEI P-VALUES;
 - analisi della inflazione della varianza per capire se togliere qualche regressore;
 ####  interpretazione dei coefficienti aiutandoti con il capitolo sull'adjustement;
 ####  diagnostica del modello e verifica delle assunzioni (vedi appunti su Rmarkdown per notare se haid imenticato qualcosa):
