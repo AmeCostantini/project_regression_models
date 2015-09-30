@@ -1,0 +1,113 @@
+---
+title: "Transmission and fuel consumption analysis"
+output: html_document
+---
+
+```{r options, echo=FALSE, results='hide'}
+options(digits=4)
+```
+
+```{r packages, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+require(car); require(dplyr); require(datasets); require(GGally); require(psych); require(tidyr); require(ggplot2); require(lsr)
+```
+
+```{r loading mtcars, echo=FALSE, results='hide'}
+?mtcars
+str(mtcars)
+```
+
+###Executive summary
+The main goal of this analysis is using the `mtcars` dataset to answer two questions:
+
+- is an automatic or manual transmission better for `mpg`?
+- quantify the `mpg` difference between automatic and manual transmissions;
+
+`mpg` being *miles per gallon*, an indicator of fule consumption.
+The results are as follows: the main effect of transmission, `am`, on consumption, is relevant: the `mpg` mean for automatic transmission car is `r mean(mtcars$mpg[mtcars$am==0])` while the `mpg` mean for manual transmission car is `r mean(mtcars$mpg[mtcars$am==1])`.
+ *0* being automatic transmission, and *1* the manual one. It seems that cars with manual transmission has less fuel consumption on average, but analyzing data and hearing the domain experts opinion, I have detected a possible confounding variable, weight - `wt`. As you wll see in the rest of the analysis, automatica tranmission cars tend to weigh more, and weight is able to explain all the relationship between  `mpg` and `am`. At the end of the analysis I'll try to idenfity a parsimonious model to predict `mpg`.
+
+###Exploratory data analysis
+
+```{r matrice scatterplot, echo=FALSE, fig.show='hide', cache=TRUE}
+g0 <- ggpairs(mtcars)
+```
+
+
+The `mtcars`dataset is composed by 32 observations and 11 variables, some interpretable as factors; for details please look at `?mtcars` on the R console. There are no missing values.
+At the appendix you find the plot *Scatterplot matrix* which represents the relationship between all pairs of variable, and it is extremely useful to orient the modeling. Infact you can see that the graph representin `wt` and `am` shows how the two groups are almost not overlapped. This, in addition to domain experts opinions, prompted me to adjust the relationship between `mpg` and `am` for `wt`at first.
+
+###Adjustement
+
+Let's show again the main effect of `am`on `mpg`:
+
+```{r am main effect, echo=FALSE, results='markup'}
+mtcars_agg1  <- mtcars %>%
+  group_by(am) %>%
+  summarize(mean_mpg = mean(mpg),
+            n= n())
+mtcars_agg1
+```
+
+This difference in means is also statistically significant. Let's perform an ANOVA and see the results of the F-statistics and the eta quared:
+
+```{r am anova, echo=FALSE}
+am_aov <- aov(mpg ~ am, mtcars)
+summary(am_aov)
+etaSquared(am_aov)
+```
+
+
+But if we adjust the relationship for `wt`, things change a lot. You can see this looking at the Appendix at plot *mpg vs am adjusted for wt*
+
+```{r am e wt plot mpg, echo=FALSE, results='hide', fig.show='hide'}
+fit3 <- lm(mpg ~ wt + factor(am), mtcars)
+summary(fit3)$coef
+g1 <- ggplot(mtcars, aes(x= wt, y = mpg, colour= factor(am))) +
+  geom_point(size = 4) + 
+  geom_abline(intercept = summary(fit3)$coef[1,1], slope = summary(fit3)$coef[2,1], colour = "red") + 
+  geom_abline(intercept = summary(fit3)$coef[1,1] + summary(fit3)$coef[3,1], slope = summary(fit3)$coef[2,1], colour = "blue") + 
+  geom_hline(yintercept = mean(mtcars$mpg[mtcars$am ==0]), colour = "red") +
+  geom_hline(yintercept = mean(mtcars$mpg[mtcars$am ==1]), colour = "blue") +
+  ggtitle("mpg vs am adjusted for wt")
+```
+
+```{r am e wt plot log(mpg), echo=FALSE, results='hide', fig.show='hide'}
+fit3l <- lm(log(mpg) ~ wt + factor(am), mtcars)
+summary(fit3)$coef
+g1l <- ggplot(mtcars, aes(x= wt, y = log(mpg), colour= factor(am))) +
+  geom_point(size = 4) + 
+  geom_abline(intercept = summary(fit3l)$coef[1,1], slope = summary(fit3l)$coef[2,1], colour = "red") + 
+  geom_abline(intercept = summary(fit3l)$coef[1,1] + summary(fit3)$coef[3,1], slope = summary(fit3l)$coef[2,1], colour = "blue") + 
+  geom_hline(yintercept = mean(log(mtcars$mpg)[mtcars$am ==0]), colour = "red") +
+  geom_hline(yintercept = mean(log(mtcars$mpg)[mtcars$am ==1]), colour = "blue") +
+  ggtitle("log(mpg) vs am adjusted for wt")
+```
+
+
+If you look at this plot, the horizontal line represents the main effect and the blue line, manual transmission, has a highest `mpg` mean. But adjusting for weight reduce incredibly the gap in the means and reverse the sign of the difference, as the obliques lines shows! Why? Well, it seems that transmission is highly associated with weight: if a car weigh less than 3 lbs, then probably in this sample you are going to have a manula transmission; so the relationship between `mpg`and `am`is very well explained by `wt`and if we account for it then knowing the type of transmission doesn't affect us in terms of knowing `mpg`. But there are some problems: first af all the relationship between `wt`and `mpg` doesn't seem linear: so I maed a second plot, *log(mpg) vs am adjusted for wt*. Thing are better and results don't change too much. Anyway another issue remains: no points overlap for a particular level of *X*: so we heavily rely on the model when we say that accounting for `wt` (for a certain level of *X*) having manual or automatic transmission doesn't affect mpg, because we can't see different in this sample different transmissions for the same weight.
+
+
+Let's see statistically what we showed in plots. First I wil show the coefficients for the , and then I will perform an ANOVA to demonstrate that accounting for `wt`makes `am`not neecssary.
+
+```{r wt am coef}
+fit3l <- lm(log(mpg) ~ wt + factor(am), mtcars)
+summary(fit3l)$coef
+```
+
+According to this model, for a unit increase of `wt`, log(mpg) increase of -0.28, holding `am`constant. Furthermore, holding `wt`constant, moving from automatic to manual transmission change the intercept of -0.04. We should be more accurate having some confidence intervals:
+
+```{r wt am coefc confint, echo=FALSE}
+confint(fit3l)
+```
+
+so the change in the intercept could be positive or negative. Is `am`necessary for this model? 
+
+```{r am and wt, results='hide'}
+fit0 <- lm(log(mpg) ~ wt, mtcars)
+anova(fit0, fit3l)
+```
+
+Adding `am`to a model that include `wt`to predict `mpg` is not necessary, beacuse p.value of the F statistics is `r anova(fit0, fit3l)$"Pr(>F)"[2]`
+
+###A linear model
+I would like to conclude this analysis fitting a linear model that, in according to parsimony principles, explain as much as possible `mpg` variance. I started with `wt`predictor and after that tried to include a third variable and performing an ANOVA for all of that, looking for significant predictors. I have started with `hp`, which is significant, and after that no fourth variable seemed statistically necessary. 

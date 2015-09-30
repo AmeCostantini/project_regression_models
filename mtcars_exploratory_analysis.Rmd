@@ -12,7 +12,7 @@ The question of interest are:
 ##Mtcars dataset
 
 ```{r packages}
-require(car); require(dplyr); require(datasets); require(GGally); require(psych); require(tidyr); require(ggplot2); require(lsr)
+require(car); require(dplyr); require(datasets); require(GGally); require(psych); require(tidyr); require(ggplot2); require(lsr); require(xtable)
 ```
 
 ```{r loading mtcars}
@@ -149,7 +149,21 @@ vif(fit1)
 confint(fit1)
 par(mfrow = c(2, 2))
 plot(fit1)
+shapiro.test(fit1$residuals)
 ```
 
-ORA COMMENTI SUL MODELLO, CHE SEMBRA ESSERE IL MIGLIORE
+##exploration
+```{r}
+ggplot(mtcars, aes(x = am, y = mpg, colour = factor(wt<3))) + 
+  geom_point(size = 4)
+
+ggplot(mtcars, aes(x = wt, y = mpg, colour = factor(am))) + 
+  geom_point(size = 4)
+
+ggplot(mtcars, aes(x = drat, y = mpg, colour = factor(am))) + 
+  geom_point(size = 4)
+
+ggplot(mtcars, aes(x = wt, y = mpg, size = drat)) + 
+  geom_point()
+```
 
