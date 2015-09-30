@@ -137,7 +137,7 @@ Let's include more variable to see how it works:
 fit0 <- lm(log(mpg) ~ wt, mtcars)
 fit1 <- lm(log(mpg) ~ wt + I(hp/100), mtcars)
 anova(fit0, fit1)
-fit2 <- lm(log(mpg) ~ wt + hp + carb, mtcars)
+fit2 <- lm(log(mpg) ~ wt + hp + factor(vs), mtcars)
 anova(fit1, fit2)
 ```
 
