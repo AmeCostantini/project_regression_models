@@ -1,4 +1,10 @@
 base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
 car
 dplyr
 GGally
@@ -6,3 +12,5 @@ psych
 tidyr
 ggplot2
 lsr
+grid
+gridExtra

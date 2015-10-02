@@ -110,7 +110,7 @@ R squared adjusted is `r summary(fit4)$r.squared`, and the variance inflation fa
 
 ####Scatterplot matrix
 
-```{r scatterplot matrix, echo=FALSE, fig.align='center', fig.height=15, fig.width=20}
+```{r scatterplot matrix, echo=FALSE, fig.align='center', fig.height=25, fig.width=20}
 g0
 ```
 
