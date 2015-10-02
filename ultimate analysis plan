@@ -2,10 +2,10 @@
 Project for the coursera class Regression models
 
 Things to do:
-- includere modello finale
-- explain logaritmic transformation;
+- includere modello finale `√`
+- explain logaritmic transformation; `√`
 - include diagnostic plot;
-- include diagnostic analysis(test di shapiro, hatvalues, cook ecc)
+- include diagnostic analysis(test di shapiro, hatvalues, cook ecc) `√`
 - rileggere appunti per vedere se ho seguito bene il metodo;
 - rileggere l'assignment per vedere se ho risposto a tutte le domande;
 - comprimere tutto in 2 pagine più 3 di figure;
