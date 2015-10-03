@@ -36,7 +36,7 @@ At the appendix you find the plot *Scatterplot matrix*, extremely useful to orie
 ####Adjustement
 
 ```{r am anova, echo=FALSE, results='hide'}
-am_aov <- aov(mpg ~ am, mtcars)
+am_aov <- aov(mpg ~ factor(am), mtcars)
 summary(am_aov)
 etaSquared(am_aov)[1]
 ```
@@ -77,20 +77,23 @@ fit3l <- lm(log(mpg) ~ wt + factor(am), mtcars)
 summary(fit3l)$coef
 ```
 
-According to this model (remember the log transformation of the response), for a unit increase of `wt`, the geometric mean of `mpg` is multiplied by `r exp(summary(fit3l)$coef[2,1])` (holding `am` constant). So it decreases, as expected. Furthermore, holding `wt` constant, moving from automatic to manual transmission change the intercept of a multiplying factor of `r exp(summary(fit3l)$coef[3,1])`. We should be more accurate having some confidence intervals:
+According to this model (remember the log transformation of the response), for a unit increase of `wt`, the geometric mean of `mpg` is multiplied by $e^{\beta X_{wt}}$, `r exp(summary(fit3l)$coef[2,1])` (holding `am` constant). So it decreases, as expected. Furthermore, holding `wt` constant, moving from automatic to manual transmission change the intercept of a multiplying factor of `r exp(summary(fit3l)$coef[3,1])`. We should be more accurate having some confidence intervals:
 
 ```{r wt am coefc confint, echo=FALSE}
 confint(fit3l)
 ```
 
-so the change in the intercept could be positive or negative. Is `am` necessary for this model? 
+Powering $e$ to lower and upper bound of `am` coefficient we see that intercept could be multiplied by `r exp(confint(fit3l)[3,1])` or `r exp(confint(fit3l)[3,2])`. So we don't even know if changing transmission, holding `wt`constant, decrease o increase `mpg`. Is `am` necessary for this model? 
 
-```{r am and wt, results='hide'}
+```{r lm wt, echo=FALSE, results='hide'}
 fit0 <- lm(log(mpg) ~ wt, mtcars)
-anova(fit0, fit3l)
 ```
 
-Adding `am` in this case isn't necessary, p.value of the F statistics is `r anova(fit0, fit3l)$"Pr(>F)"[2]`
+```{r am and wt, results='hide'}
+anova(lm(log(mpg) ~ wt, mtcars), lm(log(mpg) ~ wt + factor(am), mtcars))
+```
+
+Adding `am` in this case isn't necessary, because p.value of the F statistics is `r anova(fit0, fit3l)$"Pr(>F)"[2]`
 
 ####A linear model
 I would like to conclude this analysis fitting a linear model that, in according to parsimony principles, explain as much as possible `mpg` variance. I started with `wt` predictor, because R squared is high, `r summary(fit0)$r.squared`; after that I tried to include a third variable, looking for significant predictors. I have started with `hp`, which is significant (in the model I divided it by 100 for interpretability of coefficients), and after that no fourth variable seemed statistically necessary to the model. Here are the coefficients of `lm(log(mpg) ~ wt + I(hp/100), mtcars)`:

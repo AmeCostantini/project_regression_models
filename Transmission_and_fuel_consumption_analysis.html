@@ -77,15 +77,14 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 ## (Intercept)  3.89834    0.13567 28.7345 7.374e-23
 ## wt          -0.28699    0.03501 -8.1978 4.870e-09
 ## factor(am)1 -0.04307    0.06865 -0.6274 5.353e-01</code></pre>
-<p>According to this model (remember the log transformation of the response), for a unit increase of <code>wt</code>, the geometric mean of <code>mpg</code> is multiplied by 0.7505 (holding <code>am</code> constant). So it decreases, as expected. Furthermore, holding <code>wt</code> constant, moving from automatic to manual transmission change the intercept of a multiplying factor of 0.9578. We should be more accurate having some confidence intervals:</p>
+<p>According to this model (remember the log transformation of the response), for a unit increase of <code>wt</code>, the geometric mean of <code>mpg</code> is multiplied by <span class="math">\(e^{\beta X_{wt}}\)</span>, 0.7505 (holding <code>am</code> constant). So it decreases, as expected. Furthermore, holding <code>wt</code> constant, moving from automatic to manual transmission change the intercept of a multiplying factor of 0.9578. We should be more accurate having some confidence intervals:</p>
 <pre><code>##               2.5 %   97.5 %
 ## (Intercept)  3.6209  4.17582
 ## wt          -0.3586 -0.21539
 ## factor(am)1 -0.1835  0.09733</code></pre>
-<p>so the change in the intercept could be positive or negative. Is <code>am</code> necessary for this model?</p>
-<pre class="r"><code>fit0 &lt;- lm(log(mpg) ~ wt, mtcars)
-anova(fit0, fit3l)</code></pre>
-<p>Adding <code>am</code> in this case isn’t necessary, p.value of the F statistics is 0.5353</p>
+<p>Powering <span class="math">\(e\)</span> to lower and upper bound of <code>am</code> coefficient we see that intercept could be multiplied by 0.8324 or 1.1022. So we don’t even know if changing transmission, holding <code>wt</code>constant, decrease o increase <code>mpg</code>. Is <code>am</code> necessary for this model?</p>
+<pre class="r"><code>anova(lm(log(mpg) ~ wt, mtcars), lm(log(mpg) ~ wt + factor(am), mtcars))</code></pre>
+<p>Adding <code>am</code> in this case isn’t necessary, because p.value of the F statistics is 0.5353</p>
 </div>
 <div id="a-linear-model" class="section level4">
 <h4>A linear model</h4>
