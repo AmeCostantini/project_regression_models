@@ -77,13 +77,14 @@ fit3l <- lm(log(mpg) ~ wt + factor(am), mtcars)
 summary(fit3l)$coef
 ```
 
-According to this model (remember the log transformation of the response), for a unit increase of `wt`, the geometric mean of `mpg` is multiplied by $e^{\beta X_{wt}}$, `r exp(summary(fit3l)$coef[2,1])` (holding `am` constant). So it decreases, as expected. Furthermore, holding `wt` constant, moving from automatic to manual transmission change the intercept of a multiplying factor of `r exp(summary(fit3l)$coef[3,1])`. We should be more accurate having some confidence intervals:
+When you log-transorm the response coefficients of predictor are interpreted as follows: they are the argument of an `exp` function and the result is the expected change in the geometric mean of the response for a unit increase of the predictor. 
+So, according to this model, for a unit increase of `wt`, the geometric mean of `mpg` is multiplied by $e^{\beta X_{wt}}$, `r exp(summary(fit3l)$coef[2,1])` (holding `am` constant). So it decreases, as expected. Furthermore, holding `wt` constant, moving from automatic to manual transmission change the intercept of a multiplying factor of `r exp(summary(fit3l)$coef[3,1])`. We should be more accurate having some confidence intervals:
 
 ```{r wt am coefc confint, echo=FALSE}
 confint(fit3l)
 ```
 
-Powering $e$ to lower and upper bound of `am` coefficient we see that intercept could be multiplied by `r exp(confint(fit3l)[3,1])` or `r exp(confint(fit3l)[3,2])`. So we don't even know if changing transmission, holding `wt`constant, decrease o increase `mpg`. Is `am` necessary for this model? 
+If we powering $e$ to lower and upper bound of `am` coefficient we see that intercept could be multiplied by `r exp(confint(fit3l)[3,1])` or `r exp(confint(fit3l)[3,2])`. So we don't even know if changing transmission, holding `wt`constant, decrease o increase `mpg`. Is `am` necessary for this model? 
 
 ```{r lm wt, echo=FALSE, results='hide'}
 fit0 <- lm(log(mpg) ~ wt, mtcars)
